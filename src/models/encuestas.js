@@ -36,12 +36,23 @@ export async function crearRespuesta(idPregunta, data) {
     }
 }
 
-// export async function votar(respuesta, data) {
-//     try {
-//         respuesta.personas_que_respondieron.push(data);
-//         respuesta.save();
-//         return respuesta;
-//     } catch (error) {
-//         throw (`imposible actualizar: ${error}`);
-//     }
-// }
+export async function votar(respuestaId, dataUser) {
+    try {
+        const pregunta = await Pregunta.findOne({ 'respuestas._id': respuestaId });
+        if (!pregunta) {
+            throw new Error('Pregunta no encontrada');
+        }
+
+        const respuesta = pregunta.respuestas.find(resp => resp._id.equals(respuestaId));
+        if (!respuesta) {
+            throw new Error('Respuesta no encontrada');
+        }
+
+        respuesta.personas_que_respondieron.push(dataUser);
+        await pregunta.save();
+
+        return pregunta;
+    } catch (error) {
+        throw (`imposible actualizar: ${error}`);
+    }
+}
