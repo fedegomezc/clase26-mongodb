@@ -1,4 +1,4 @@
-import { create, findById, crearRespuesta } from '../models/encuestas.js'
+import { create, findById, crearRespuesta, votar } from '../models/encuestas.js'
 
 export const createQuestion = async (req, res) => {
     try {
@@ -20,15 +20,21 @@ export const createAnswer = async (req, res) => {
         res.status(201).json(respuesta);
 
     } catch (error) {
-        res.status(500).json({ message: 'Error al intenar crear la respuesta' });
+        res.status(500).json({ message: 'Error al intentar crear la respuesta' });
         console.error(error);
     }
 }
 
-// export const voteAnswer = async (req, res) => {
-//     const answer = await findById(req.params.respuestaId);
-//     if (!answer) {
-//         return res.status(404).json({ error: 'Respuesta no encontrada' });
-//     }
-    
-// }
+export const voteAnswer = async (req, res) => {
+    try {
+        const respuesta = await findById(req.params.respuestaId);
+        if (!respuesta) {
+            return res.status(404).json({ error: 'Respuesta no encontrada' });
+        }
+        const respuestaActualizada = await votar(respuesta, req.body);
+        return res.status(200).json(respuestaActualizada);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al intentar votar' });
+        console.error(error);
+    }
+}

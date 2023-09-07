@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { createQuestion, createAnswer } from '../controllers/encuestas.js'
+import { createQuestion, createAnswer, voteAnswer } from '../controllers/encuestas.js'
 
 const encuestasRouter = Router();
 
 encuestasRouter.post('/preguntas', createQuestion);
 encuestasRouter.post('/respuestas/:preguntaId', createAnswer);
-// encuestasRouter.post('/votar/:respuestaId', voteAnswer);
+encuestasRouter.put('/votar/:respuestaId', voteAnswer);
 
 export default encuestasRouter;
