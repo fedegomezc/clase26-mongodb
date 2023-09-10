@@ -48,11 +48,58 @@ export async function votar(respuestaId, dataUser) {
             throw new Error('Respuesta no encontrada');
         }
 
-        respuesta.personas_que_respondieron.push(dataUser);
-        await pregunta.save();
+        const usuarioYaVoto = respuesta.personas_que_respondieron.some(persona => persona.name === dataUser.name);
+
+        if (!usuarioYaVoto) {
+            respuesta.personas_que_respondieron.push(dataUser);
+            await pregunta.save();
+        } else {
+            throw new Error('El usuario ya votó en esta respuesta');
+        }
 
         return pregunta;
     } catch (error) {
         throw (`imposible actualizar: ${error}`);
+    }
+}
+
+export async function getReports() {
+    try {
+        let data = [];
+
+        data.push("--- cantidad de votos por pregunta ---");
+        data.push(await Pregunta.aggregate([
+            {
+                $unwind: "$respuestas"
+              },
+              {
+                $group: {
+                  _id: {
+                    pregunta: "$pregunta",
+                    respuesta: "$respuestas.respuesta"
+                  },
+                  cantidadVotos: {
+                    $sum: {
+                      $size: "$respuestas.personas_que_respondieron"
+                    }
+                  }
+                }
+              },
+              {
+                $group: {
+                  _id: "$_id.pregunta",
+                  respuestas: {
+                    $push: {
+                      respuesta: "$_id.respuesta",
+                      cantidadVotos: "$cantidadVotos"
+                    }
+                  }
+                }
+              }
+        ]))
+
+        return data;
+    } catch (error) {
+        throw (`imposible retornar ${error}`)
     }
 }
