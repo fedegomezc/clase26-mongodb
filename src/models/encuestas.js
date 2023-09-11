@@ -13,7 +13,7 @@ const preguntaSchema = new mongoose.Schema({
 });
 
 // modelo
-const Pregunta = mongoose.model('Preguntas', preguntaSchema)
+export const Pregunta = mongoose.model('Preguntas', preguntaSchema)
 
 export async function create(data) {
     try {
@@ -25,12 +25,8 @@ export async function create(data) {
     }
 }
 
-export async function crearRespuesta(idPregunta, data) {
+export async function crearRespuesta(pregunta, data) {
     try {
-        const pregunta = await Pregunta.findById(idPregunta);
-        if (!pregunta) {
-            throw new Error('Pregunta no encontrada');
-        }
         pregunta.respuestas.push(data);
         pregunta.save();
         let respuestaCreada = pregunta.respuestas[pregunta.respuestas.length - 1];
@@ -40,27 +36,10 @@ export async function crearRespuesta(idPregunta, data) {
     }
 }
 
-export async function votar(respuestaId, dataUser) {
+export async function votar(pregunta, respuesta, dataUser) {
     try {
-        const pregunta = await Pregunta.findOne({ 'respuestas._id': respuestaId });
-        if (!pregunta) {
-            throw new Error('Pregunta no encontrada');
-        }
-
-        const respuesta = pregunta.respuestas.find(resp => resp._id.equals(respuestaId));
-        if (!respuesta) {
-            throw new Error('Respuesta no encontrada');
-        }
-
-        const usuarioYaVoto = respuesta.personas_que_respondieron.some(persona => persona.name === dataUser.name);
-
-        if (!usuarioYaVoto) {
-            respuesta.personas_que_respondieron.push(dataUser);
-            await pregunta.save();
-        } else {
-            throw new Error('El usuario ya votó en esta respuesta');
-        }
-
+        respuesta.personas_que_respondieron.push(dataUser);
+        await pregunta.save();
         return pregunta;
     } catch (error) {
         throw (`imposible actualizar: ${error}`);
@@ -114,4 +93,4 @@ export async function getReports() {
 }
 
 // playground para mostrar cada stage del aggregate
-// https://mongoplayground.net/p/Pg1-7xaRdb6
+// https://mongoplayground.net/p/FXQVtn6Il0C
