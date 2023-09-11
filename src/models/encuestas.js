@@ -17,6 +17,7 @@ export async function create(data) {
     try {
         const newPregunta = new Pregunta(data);
         newPregunta.save();
+        return newPregunta;
     } catch (error) {
         throw (`imposible insertar: ${error}`);
     }
@@ -30,7 +31,8 @@ export async function crearRespuesta(idPregunta, data) {
         }
         pregunta.respuestas.push(data);
         pregunta.save();
-        return data;
+        let respuestaCreada = pregunta.respuestas[pregunta.respuestas.length - 1];
+        return respuestaCreada
     } catch (error) {
         throw (`imposible crear: ${error}`);
     }
@@ -71,31 +73,31 @@ export async function getReports() {
         data.push(await Pregunta.aggregate([
             {
                 $unwind: "$respuestas"
-              },
-              {
+            },
+            {
                 $group: {
-                  _id: {
-                    pregunta: "$pregunta",
-                    respuesta: "$respuestas.respuesta"
-                  },
-                  cantidadVotos: {
-                    $sum: {
-                      $size: "$respuestas.personas_que_respondieron"
+                    _id: {
+                        pregunta: "$pregunta",
+                        respuesta: "$respuestas.respuesta"
+                    },
+                    cantidadVotos: {
+                        $sum: {
+                            $size: "$respuestas.personas_que_respondieron"
+                        }
                     }
-                  }
                 }
-              },
-              {
+            },
+            {
                 $group: {
-                  _id: "$_id.pregunta",
-                  respuestas: {
-                    $push: {
-                      respuesta: "$_id.respuesta",
-                      cantidadVotos: "$cantidadVotos"
+                    _id: "$_id.pregunta",
+                    respuestas: {
+                        $push: {
+                            respuesta: "$_id.respuesta",
+                            cantidadVotos: "$cantidadVotos"
+                        }
                     }
-                  }
                 }
-              }
+            }
         ]))
 
         return data;
@@ -103,3 +105,6 @@ export async function getReports() {
         throw (`imposible retornar ${error}`)
     }
 }
+
+// playground para mostrar cada stage del aggregate
+// https://mongoplayground.net/p/Pg1-7xaRdb6
