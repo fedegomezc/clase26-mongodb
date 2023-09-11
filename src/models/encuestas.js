@@ -8,6 +8,8 @@ const preguntaSchema = new mongoose.Schema({
         respuesta: String,
         personas_que_respondieron: [{ name: String }]
     }],
+}, {
+    timestamps: true
 });
 
 // modelo
@@ -85,6 +87,11 @@ export async function getReports() {
                             $size: "$respuestas.personas_que_respondieron"
                         }
                     }
+                }
+            },
+            {
+                $sort: {
+                    "cantidadVotos": -1
                 }
             },
             {
